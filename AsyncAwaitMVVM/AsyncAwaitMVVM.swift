@@ -41,7 +41,12 @@ final class AsyncAwaitMVVMViewModel: ObservableObject {
     func onCallToActionButtonPressed() {
        let task = Task {
            do {
-               myData = try await mangerClass.getData()
+               //myData = try await mangerClass.getData()
+              let data = try await managerActor.getData()
+               
+               await MainActor.run {
+                   self.myData = data
+               }
            } catch {
                print(error)
            }

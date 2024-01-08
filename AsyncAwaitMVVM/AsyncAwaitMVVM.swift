@@ -23,14 +23,30 @@ actor MyManagerActor {
     }
 }
 
+@MainActor
 final class AsyncAwaitMVVMViewModel: ObservableObject {
     let mangerClass = MyManagerClass()
     let managerActor = MyManagerActor()
     
+    @Published private(set) var myData: String = "Starting text"
+    
+    private var tasks: [Task<Void, Never>] = []
+    
+    func cancelTasks() {
+        tasks.forEach({ $0.cancel() })
+        tasks = []
+    }
+    
+    @MainActor
     func onCallToActionButtonPressed() {
-        Task {
-            
+       let task = Task {
+           do {
+               myData = try await mangerClass.getData()
+           } catch {
+               print(error)
+           }
         }
+        tasks.append(task)
     }
 }
 
@@ -40,9 +56,12 @@ struct AsyncAwaitMVVM: View {
     var body: some View {
         
         VStack {
-            Button("Press me") {
+            Button(viewModel.myData) {
                 viewModel.onCallToActionButtonPressed()
             }
+        }
+        .onDisappear {
+            
         }
     }
 }
